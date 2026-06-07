@@ -149,7 +149,7 @@ def upload_image():
     full_url = request.host_url.rstrip('/') + relative_url
 
     return jsonify({
-        'message': 'Изображение успешно загружено',
+        'message': 'Изображение успешно загружено ',
         'id': unique_filename,
         'original_name': original_filename,
         'url': relative_url,
