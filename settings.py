@@ -42,3 +42,4 @@ def ensure_directories_exist():
         except Exception as e:
             print(f"Error creating directory {directory}: {e}")
             raise
+

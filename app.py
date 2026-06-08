@@ -1,3 +1,5 @@
+import traceback
+
 from flask import Flask, render_template, jsonify, request, url_for, send_from_directory
 from PIL import Image, UnidentifiedImageError
 from werkzeug.exceptions import RequestEntityTooLarge, BadRequest
@@ -6,6 +8,7 @@ import uuid
 from io import BytesIO
 from flask_cors import CORS
 
+from database.repository import save_metadata
 # Импортируем настройки из отдельного файла
 from settings import (
     BASE_DIR,
@@ -130,6 +133,17 @@ def upload_image():
     # Создаём директорию, если её нет
     target_path.parent.mkdir(parents=True, exist_ok=True)
 
+    try:
+        save_metadata(
+            filename=unique_filename,
+            original_name=original_filename,
+            size=len(file_data),
+            file_type=image_extension
+        )
+    except Exception as e:
+        target_path.unlink(missing_ok=True)
+        logger.error(f'File deleted. Error saving metadata file {unique_filename} to DB: {e}')
+        return jsonify({'error': 'Error saving metadata file'}), 500
     # Сохраняем файл с обработкой ошибок
     try:
         target_path.write_bytes(file_data)
@@ -145,7 +159,7 @@ def upload_image():
         return jsonify({'error': 'Неизвестная ошибка при сохранении файла'}), 500
 
     # Формируем URL для доступа к изображению (через Nginx)
-    relative_url =  url_for('get_image', filename=unique_filename) #f'/images/{unique_filename}'
+    relative_url = url_for('get_image', filename=unique_filename)  # f'/images/{unique_filename}'
     full_url = request.host_url.rstrip('/') + relative_url
 
     return jsonify({
