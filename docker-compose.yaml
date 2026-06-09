@@ -7,6 +7,8 @@ services:
       - db
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       IMAGES_DIR: /app/images
       LOGS_DIR: /app/logs
@@ -20,13 +22,13 @@ services:
     container_name: image_server_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: image_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5435:5432"
+      - "5436:5432"
 
 
   nginx:

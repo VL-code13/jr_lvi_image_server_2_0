@@ -12,8 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Создаём папки для изображений и логов, устанавливаем права
-RUN mkdir -p /images /logs && \
-    chmod 755 /images /logs
+RUN mkdir -p /app/images /app/logs && chmod 755 /app/images /app/logs
 
 # Указываем порт, который будет открыт
 EXPOSE 3000

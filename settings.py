@@ -5,13 +5,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent
 
 # Получаем пути из переменных окружения или используем значения по умолчанию
-IMAGES_DIR_STR = os.getenv('IMAGES_DIR', BASE_DIR/'images')
-LOGS_DIR_STR = os.getenv('LOGS_DIR', BASE_DIR/'logs')
-
-
-# Преобразуем строки в Path-объекты
-IMAGES_DIR = Path(IMAGES_DIR_STR)
-LOGS_DIR = Path(LOGS_DIR_STR)
+IMAGES_DIR = Path(os.getenv('IMAGES_DIR', str(BASE_DIR / 'images')))
+LOGS_DIR = Path(os.getenv('LOGS_DIR', str(BASE_DIR / 'logs')))
 
 # Ограничения по размеру файлов
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 МБ
@@ -24,6 +19,7 @@ ALLOWED_IMAGE_FORMATS = {
     'GIF': 'gif'
 }
 
+
 def ensure_directories_exist():
     """Создаёт необходимые директории, если их нет, с обработкой ошибок."""
     for directory in [IMAGES_DIR, LOGS_DIR]:
@@ -33,8 +29,13 @@ def ensure_directories_exist():
             # Проверяем, что директория действительно существует
             if not directory.exists():
                 raise RuntimeError(f"Failed to create directory: {directory}")
-            # Устанавливаем права доступа (755: rwxr-xr-x)
-            os.chmod(directory, 0o755)
+
+            # Пытаемся установить права доступа (755: rwxr-xr-x)не падаем, если не удалось изменить права (например, в Docker)
+            try:
+                os.chmod(directory, 0o755)
+            except PermissionError:
+                print(f"Warning: Could not change permissions for {directory} (running in Docker?)")
+
             print(f"Directory created/verified: {directory}")
         except PermissionError as e:
             print(f"Permission denied when creating {directory}: {e}")

@@ -8,6 +8,7 @@ import uuid
 from io import BytesIO
 from flask_cors import CORS
 
+from database.models import create_images
 from database.repository import save_metadata
 # Импортируем настройки из отдельного файла
 from settings import (
@@ -97,7 +98,7 @@ def upload_image():
         return jsonify({
             'error': 'No image uploaded. Файл не найден. Поле формы должно называться image'
         }), 400
-
+    # Проверяем расширение файла
     original_filename = uploaded_file.filename or 'Unknown'
 
     # Проверяем, что файл имеет имя
@@ -127,12 +128,21 @@ def upload_image():
         }), 400
 
     # Генерируем уникальное имя файла
-    unique_filename = f'{uuid.uuid4().hex}.{image_extension}'
+    unique_filename = f'{uuid.uuid4().hex}.{image_extension}'  
     target_path = IMAGES_DIR / unique_filename
 
-    # Создаём директорию, если её нет
-    target_path.parent.mkdir(parents=True, exist_ok=True)
+    #Сначала сохраняем файл на диск, потом в БД
+    try:
+        target_path.write_bytes(file_data)
+        logger.info(f'File saved to disk: {unique_filename}')
+    except PermissionError as e:
+        logger.error(f'Permission denied when saving file {unique_filename}: {e}')
+        return jsonify({'error': 'Нет прав на запись файла'}), 500
+    except OSError as e:
+        logger.error(f'OS error when saving file {unique_filename}: {e}')
+        return jsonify({'error': 'Ошибка файловой системы'}), 500
 
+    # Сохраняем метаданные в БД
     try:
         save_metadata(
             filename=unique_filename,
@@ -141,9 +151,13 @@ def upload_image():
             file_type=image_extension
         )
     except Exception as e:
+        # Если БД упала, удаляем файл с диска
         target_path.unlink(missing_ok=True)
         logger.error(f'File deleted. Error saving metadata file {unique_filename} to DB: {e}')
         return jsonify({'error': 'Error saving metadata file'}), 500
+    # Создаём директорию, если её нет
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+
     # Сохраняем файл с обработкой ошибок
     try:
         target_path.write_bytes(file_data)
@@ -203,5 +217,23 @@ def handle_bad_request(e):
     return jsonify({'error': 'Некорректный запрос'}), 400
 
 
+# Создаём таблицы при запуске приложения
+def init_db():
+    """Инициализация базы данных."""
+    try:
+        result = create_images()
+        logger.info(result)
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+        raise
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3000, debug=True)  # Отключаем debug в продакшене
+    # Создаём необходимые директории
+    ensure_directories_exist()
+
+    # Инициализируем БД
+    init_db()
+
+    # Запускаем приложение
+    app.run(host='0.0.0.0', port=3000, debug=True)# Отключаем debug в продакшене
