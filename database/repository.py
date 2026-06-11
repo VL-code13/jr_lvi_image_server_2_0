@@ -17,7 +17,7 @@ def save_metadata(filename: str, original_name: str, size: int, file_type: str) 
         conn = get_connection()
         with conn.cursor() as cursor:
             sql = '''
-                INSERT INTO images (filename, original_name, size, file_type)
+                INSERT INTO images (filename, original_filename, size, file_type)
                 VALUES (%s, %s, %s, %s)
             '''
             cursor.execute(sql, (filename, original_name, size, file_type))

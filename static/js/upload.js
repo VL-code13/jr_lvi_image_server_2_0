@@ -64,9 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!allowedTypes.includes(file.type) || file.size > MAX_SIZE_BYTES) {
                 continue;
             }
+
             try {
                 const data = await uploadFileToServer(file);
-                storedFiles.push({name: file.name, url: data.full_url });
+                storedFiles.push({ name: file.name, url: data.full_url });
                 localStorage.setItem('uploadedImages', JSON.stringify(storedFiles));
                 updateTabStyles();
                 filesAdded = true;

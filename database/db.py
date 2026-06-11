@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 # Загружаем переменные окружения из файла .env
 load_dotenv()
 
+
 def get_connection():
     """
     Создаёт и возвращает подключение к базе данных PostgreSQL.

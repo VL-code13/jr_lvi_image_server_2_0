@@ -1,5 +1,5 @@
 import psycopg
-from psycopg2 import DatabaseError  # Импорт исключения для обработки ошибок БД
+from psycopg import DatabaseError  # Импорт исключения для обработки ошибок БД
 
 from database.db import get_connection
 
