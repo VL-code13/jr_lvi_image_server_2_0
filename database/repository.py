@@ -4,9 +4,10 @@
 Содержит функции для сохранения, получения и удаления
 метаданных изображений в базе данных PostgreSQL.
 """
+import logging
 from database.db import get_connection
 from typing import Optional
-import logging
+
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ def save_metadata(filename: str, original_filename: str, size: int, file_type: s
             conn.close()
 
 
-def get_images_list(limit: int = 10, offset: int = 0) -> list[dict]:
+def get_images_list(limit: int = 10, offset: int = 0) -> list[tuple]:
     """
     Получает список изображений из БД с пагинацией.
 
@@ -66,19 +67,14 @@ def get_images_list(limit: int = 10, offset: int = 0) -> list[dict]:
                 LIMIT %s OFFSET %s
             """
             cursor.execute(sql, (limit, offset))
-            rows = cursor.fetchall()
-        return rows
+            rows: list[tuple] = cursor.fetchall()
+            return rows
+    except Exception as e:
+        logger.error(f"Error fetching images from database: {e}")
+        return []
     finally:
         if conn:
             conn.close()
-            """
-            columns: list[str] = [
-                "id", "filename", "original_filename", "size", "upload_time", "file_type",
-            ]
-            return [dict(zip(columns, row)) for row in rows]
-    except Exception as e:
-        logger.error(f"Error fetching images from database: {e}")
-        return []"""
 
 
 def get_total_images_count() -> int:
@@ -93,17 +89,17 @@ def get_total_images_count() -> int:
         conn = get_connection()
         with conn.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM images")
-            result = cursor.fetchone()
+            result: Optional[tuple] = cursor.fetchone()
             return result[0] if result else 0
     except Exception as e:
-        logger.error(f"Error counting images in database: {e}")
+        logger.error("Error counting images in database: %s", e)
         return 0
     finally:
         if conn:
             conn.close()
 
 
-def get_image_by_id(image_id: int) -> Optional[dict]:
+def get_image_by_id(image_id: int) -> Optional[tuple]:
     """
     Получает метаданные одного изображения по его ID.
 
@@ -123,13 +119,8 @@ def get_image_by_id(image_id: int) -> Optional[dict]:
                 WHERE id = %s
             """
             cursor.execute(sql, (image_id,))
-            row = cursor.fetchone()
-            if row is None:
-                return None
-            columns: list[str] = [
-                "id", "filename", "original_filename", "size", "upload_time", "file_type",
-            ]
-            return dict(zip(columns, row))
+            row: Optional[tuple] = cursor.fetchone()
+            return row
     except Exception as e:
         logger.error(f"Error fetching image id={image_id} from database: {e}")
         return None

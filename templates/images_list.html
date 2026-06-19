@@ -1,105 +1,77 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Список изображений — SmartUploader</title>
+    <title>Список изображений</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
+    <section class="upload__intro">
+        <h2 class="upload__title">Список загруженных изображений</h2>
+    </section>
+    <nav class="upload__tabs">
+        <button class="upload__tab" id="upload-tab-btn"
+                onclick="window.location.href='/upload'">Upload</button>
+        <button class="upload__tab upload__tab--active" id="images-tab-btn">Images</button>
+    </nav>
 
-<section class="upload__intro">
-    <h2 class="upload__title">Список загруженных изображений</h2>
-    <p class="upload__description">Всего изображений: {{ total }}</p>
-</section>
-
-<nav class="upload__tabs">
-    <button class="upload__tab" id="upload-tab-btn"
-            onclick="window.location.href='/upload'">Upload</button>
-    <button class="upload__tab upload__tab--active" id="images-tab-btn">Images</button>
-</nav>
-
-<section class="file-list-container">
     {% if images %}
-    <div class="file-list-header">
-        <div class="file-col file-col-name">Имя файла</div>
-        <div class="file-col" style="flex-basis:20%;">Оригинальное имя</div>
-        <div class="file-col" style="flex-basis:10%;">Размер (КБ)</div>
-        <div class="file-col" style="flex-basis:15%;">Дата загрузки</div>
-        <div class="file-col" style="flex-basis:5%;">Тип</div>
-        <div class="file-col file-col-delete">Действие</div>
-    </div>
+    <div class="file-list-container">
+        <div class="file-list-header">
+            <div class="file-col file-col-name">Имя файла</div>
+            <div class="file-col file-col-url">Оригинальное имя</div>
+            <div class="file-col">Размер (КБ)</div>
+            <div class="file-col">Дата загрузки</div>
+            <div class="file-col">Тип</div>
+            <div class="file-col file-col-delete">Действие</div>
+        </div>
 
-    {% for img in images %}
-    <div class="file-list-item">
-        <div class="file-col file-col-name">
-            <span class="file-icon">📄</span>
-            <a href="/images/{{ img.filename }}" target="_blank" class="file-name">
-                {{ img.filename }}
-            </a>
+        {% for img in images %}
+        <div class="file-list-item">
+            <div class="file-col file-col-name">
+                <span class="file-icon">📄</span>
+                <span class="file-name">{{ img.filename }}</span>
+            </div>
+            <div class="file-col file-col-url">{{ img.original_filename }}</div>
+            <div class="file-col">{{ img.size_kb }}</div>
+            <div class="file-col">{{ img.upload_time }}</div>
+            <div class="file-col">{{ img.file_type }}</div>
+            <div class="file-col file-col-delete">
+                <a href="{{ url_for('delete_image', id=img.id) }}"
+                   onclick="return confirm('Удалить изображение?')">
+                    <img class="delete-img"
+                         src="{{ url_for('static', filename='img/icon/delete.png') }}"
+                         alt="delete">
+                </a>
+            </div>
         </div>
-        <div class="file-col" style="flex-basis:20%; color:#555; font-size:14px;">
-            {{ img.original_name }}
-        </div>
-        <div class="file-col" style="flex-basis:10%; color:#555; font-size:14px;">
-            {{ (img.size / 1024) | round(1) }}
-        </div>
-        <div class="file-col" style="flex-basis:15%; color:#555; font-size:14px;">
-            {{ img.upload_time.strftime('%Y-%m-%d %H:%M') if img.upload_time else '—' }}
-        </div>
-        <div class="file-col" style="flex-basis:5%; color:#555; font-size:14px;">
-            {{ img.file_type }}
-        </div>
-        <div class="file-col file-col-delete">
-            <form action="/delete/{{ img.id }}" method="POST" style="display:inline;"
-                  onsubmit="return confirm('Удалить изображение?');">
-                <button type="submit" class="delete-btn" title="Удалить">🗑️</button>
-            </form>
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 
     <!-- Пагинация -->
-    <div class="pagination" style="display:flex; justify-content:center; gap:10px; margin-top:30px;">
-        {% if page > 1 %}
-        <a href="{{ url_for('images_list_page', page=page-1) }}"
-           class="upload__button-btn" style="width:auto; padding:8px 16px; text-decoration:none;">
-            ← Предыдущая
-        </a>
+    <div style="text-align: center; padding: 20px;">
+        {% if has_prev %}
+        <a href="{{ url_for('images_page', page=page - 1) }}">← Предыдущая</a>
         {% else %}
-        <span class="upload__button-btn"
-              style="width:auto; padding:8px 16px; opacity:0.5; cursor:not-allowed;">
-            ← Предыдущая
-        </span>
+        <span style="color: #ccc;">← Предыдущая</span>
         {% endif %}
 
-        <span style="line-height:40px; color:#333;">
-            Страница {{ page }} из {{ total_pages }}
-        </span>
+        Страница {{ page }} из {{ total_pages }}
 
-        {% if page < total_pages %}
-        <a href="{{ url_for('images_list_page', page=page+1) }}"
-           class="upload__button-btn" style="width:auto; padding:8px 16px; text-decoration:none;">
-            Следующая →
-        </a>
+        {% if has_next %}
+        <a href="{{ url_for('images_page', page=page + 1) }}">Следующая →</a>
         {% else %}
-        <span class="upload__button-btn"
-              style="width:auto; padding:8px 16px; opacity:0.5; cursor:not-allowed;">
-            Следующая →
-        </span>
+        <span style="color: #ccc;">Следующая →</span>
         {% endif %}
     </div>
 
     {% else %}
-    <p class="upload__promt" style="text-align:center; margin-top:50px; color:#333;">
-        Нет загруженных изображений.
-    </p>
+    <p style="text-align: center; margin-top: 50px;">Нет загруженных изображений.</p>
     {% endif %}
-</section>
-
 </body>
+
 </html>

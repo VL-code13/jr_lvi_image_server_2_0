@@ -1,19 +1,24 @@
+/**
+ * Страница списка изображений — отображение файлов из localStorage,
+ * удаление записей, навигация.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', function (event) {
         if (event.key === 'F5' || event.key === 'Escape') {
             event.preventDefault();
-            window.location.href = 'upload.html';
+            window.location.href = '/upload';
         }
     });
+
     const fileListWrapper = document.getElementById('file-list-wrapper');
     const uploadRedirectButton = document.getElementById('upload-tab-btn');
 
     const updateTabStyles = () => {
         const uploadTab = document.getElementById('upload-tab-btn');
         const imagesTab = document.getElementById('images-tab-btn');
-        const storedFiles = JSON.parse(localStorage.getItem('uploadedImages')) || [];
 
-        const isImagesPage = window.location.pathname.includes('images.html');
+        const isImagesPage = window.location.pathname.includes('/images-list');
 
         uploadTab.classList.remove('upload__tab--active');
         imagesTab.classList.remove('upload__tab--active');
@@ -30,10 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
         fileListWrapper.innerHTML = '';
 
         if (storedFiles.length === 0) {
-            fileListWrapper.innerHTML = '<p class="upload__promt" style="text-align: center; margin-top: 50px;">No images uploaded yet.</p>';
+            fileListWrapper.innerHTML =
+                '<p class="upload__promt" style="text-align: center; margin-top: 50px;">' +
+                'No images uploaded yet.</p>';
         } else {
             const container = document.createElement('div');
             container.className = 'file-list-container';
+
             const header = document.createElement('div');
             header.className = 'file-list-header';
             header.innerHTML = `
@@ -51,12 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileItem.className = 'file-list-item';
                 fileItem.innerHTML = `
                     <div class="file-col file-col-name">
-                        <span class="file-icon"><img src="/static/img/icon/feather_upload-cloud.png" alt="file icon"></span>
+                        <span class="file-icon">
+                            <img src="/static/img/icon/feather_upload-cloud.png" alt="file icon">
+                        </span>
                         <span class="file-name">${fileData.name}</span>
                     </div>
-                    <div class="file-col file-col-url">https://sharefile.xyz/${fileData.name}</div>
+                    <div class="file-col file-col-url">${fileData.url}</div>
                     <div class="file-col file-col-delete">
-                        <button class="delete-btn" data-index="${index}"><img src="/static/img/icon/delete.png" alt="delete icon"></button>
+                        <button class="delete-btn" data-index="${index}">
+                            <img src="/static/img/icon/delete.png" alt="delete icon">
+                        </button>
                     </div>
                 `;
                 list.appendChild(fileItem);

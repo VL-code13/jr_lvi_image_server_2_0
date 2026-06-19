@@ -1,10 +1,14 @@
+/**
+ * Страница загрузки — обработка drag-and-drop, отправка файлов
+ * на сервер, копирование URL, навигация между вкладками.
+ */
+
 document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' || event.key === 'F5') {
             event.preventDefault();
-
             sessionStorage.removeItem('pageWasVisited');
-            window.location.href = '../index.html';
+            window.location.href = '/';
         }
     });
 });
@@ -19,9 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateTabStyles = () => {
         const uploadTab = document.getElementById('upload-tab-btn');
         const imagesTab = document.getElementById('images-tab-btn');
-        const storedFiles = JSON.parse(localStorage.getItem('uploadedImages')) || [];
 
-        const isImagesPage = window.location.pathname.includes('images.html');
+        const isImagesPage = window.location.pathname.includes('/images-list');
 
         uploadTab.classList.remove('upload__tab--active');
         imagesTab.classList.remove('upload__tab--active');
@@ -67,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const data = await uploadFileToServer(file);
-                storedFiles.push({ name: file.name, url: data.full_url });
+                storedFiles.push({name: file.name, url: data.full_url});
                 localStorage.setItem('uploadedImages', JSON.stringify(storedFiles));
                 updateTabStyles();
                 filesAdded = true;
@@ -104,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (imagesButton) {
         imagesButton.addEventListener('click', () => {
-            window.location.href = '/images';
+            window.location.href = '/images-list';
         });
     }
 
@@ -125,4 +128,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateTabStyles();
-}); 
+});

@@ -3,10 +3,13 @@
 
 Содержит функции для создания и инициализации таблиц в PostgreSQL.
 """
+import logging
+
 import psycopg
 from psycopg import DatabaseError
+
 from database.db import get_connection
-import logging
+
 
 logger: logging.Logger = logging.getLogger(__name__)
 

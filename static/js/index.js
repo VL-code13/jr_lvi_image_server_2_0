@@ -1,3 +1,8 @@
+/**
+ * Главная страница — случайное отображение одного изображения
+ * и навигация по кнопке «Tail-ent Showcase».
+ */
+
 const allImgBloks = document.querySelectorAll('.hero__img');
 const randomIndex = Math.floor(Math.random() * allImgBloks.length);
 const randomBlock = allImgBloks[randomIndex];
