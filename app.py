@@ -7,13 +7,12 @@
 - удаления изображений;
 - резервного копирования базы данных.
 """
-import logging
+import traceback
 import os
-import uuid
-from io import BytesIO
-from pathlib import Path
-from typing import Optional
+import math
+from email import message
 
+from PIL.ImageChops import offset
 from flask import (
     Flask,
     jsonify,
@@ -26,18 +25,22 @@ from flask import (
 from flask_cors import CORS
 from PIL import Image, UnidentifiedImageError
 from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
-
+import logging
+import uuid
+from io import BytesIO
+from pathlib import Path
+from typing import Optional
 from database.models import create_images
 from database.repository import (
     delete_image_by_id,
     get_image_by_id,
-    get_images_paginated,
+    get_images_list,
     get_total_images_count,
     save_metadata,
 )
 from settings import (
+    BASE_DIR,
     ALLOWED_IMAGE_FORMATS,
-    BACKUPS_DIR,
     IMAGES_DIR,
     LOGS_DIR,
     MAX_FILE_SIZE,
@@ -104,6 +107,52 @@ def upload_page() -> str:
     """Страница загрузки изображений."""
     return render_template("upload.html")
 
+
+@app.get("/images-list")
+def images_page() -> str:
+    """
+    Страница списка загруженных изображений с пагинацией.
+
+    Query-параметры:
+        page (int): Номер страницы (по умолчанию 1).
+
+    Returns:
+        Отрендеренный HTML-шаблон ``images_list.html``.
+    """
+    page: int = request.args.get("page", 1, type=int)
+    per_page: int = 10
+    offset = (page -1) * per_page
+
+    try:
+        total_images: int = get_total_images_count()
+        total_pages: int = math.ceil(total_images / per_page) if total_images > 0 else 1
+        images = get_images_list(per_page, offset)
+
+        formated_images = []
+        for img in images:
+            img_id, filename, original_filename, size, upload_time,file_type = img
+            formated_images.append({
+                'id': img_id,
+                'filename': filename,
+                'original_filename': original_filename,
+                'size_kb': round(size / 1024, 2),
+                'upload_time': upload_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'file_type': file_type,
+                'url':f'/images/{filename}'
+            })
+        return render_template(
+            'images.html',
+            images=formated_images,
+            page=page,
+            total_pages=total_pages,
+            has_prev=page > 1,
+            has_next=page < total_pages
+        )
+    except Exception as e:
+        logger.error(f'Error reading images from database: {e}')
+        return jsonify({'error': 'Failed to read images list'}), 500
+
+
 '''
 @app.get('/images/')
 def images_page():
@@ -131,39 +180,8 @@ def images_page():
     return render_template('images.html', images=images)
 
 
-@app.get("/images-list")
-def images_list_page() -> str:
-    """
-    Страница списка загруженных изображений с пагинацией.
+'''
 
-    Query-параметры:
-        page (int): Номер страницы (по умолчанию 1).
-
-    Returns:
-        Отрендеренный HTML-шаблон ``images_list.html``.
-    """
-    page: int = request.args.get("page", 1, type=int)
-    per_page: int = 10
-
-    if page < 1:
-        page = 1
-
-    total: int = get_total_images_count()
-    total_pages: int = max(1, (total + per_page - 1) // per_page)
-
-    if page > total_pages:
-        page = total_pages
-
-    offset: int = (page - 1) * per_page
-    images: list[dict] = get_images_paginated(limit=per_page, offset=offset)
-
-    return render_template(
-        "images_list.html",
-        images=images,
-        page=page,
-        total_pages=total_pages,
-        total=total,
-    )
 '''
 @app.get('/images/')
 def images_page():
@@ -217,7 +235,7 @@ def images_page():
         total=total
     )
 
-
+'''
 # ──────────────────────────────────────────────
 # Маршруты: API загрузки
 # ──────────────────────────────────────────────
@@ -270,7 +288,7 @@ def upload_image():
     # Генерируем уникальное имя файла
     unique_filename: str = f"{uuid.uuid4().hex}.{image_extension}"
     target_path: Path = IMAGES_DIR / unique_filename
-
+    target_path.parent.mkdir(parents=True, exist_ok=True)
     # Сохраняем файл на диск
     try:
         target_path.write_bytes(file_data)
@@ -281,7 +299,6 @@ def upload_image():
     except OSError as e:
         logger.error(f"OS error when saving file {unique_filename}: {e}")
         return jsonify({"error": "Ошибка файловой системы"}), 500
-
     # Сохраняем метаданные в БД
     try:
         save_metadata(
@@ -291,30 +308,56 @@ def upload_image():
             file_type=image_extension,
         )
     except Exception as e:
-        # Если БД упала — удаляем файл с диска (откат)
-        target_path.unlink(missing_ok=True)
-        logger.error(
-            f"File deleted. Error saving metadata for {unique_filename} to DB: {e}"
-        )
-        return jsonify({"error": "Error saving metadata to database"}), 500
-
-    # Формируем URL для доступа к изображению (через Nginx)
-    relative_url: str = url_for("get_image", filename=unique_filename)
-    full_url: str = request.host_url.rstrip("/") + relative_url
-
-    logger.info(
-        f"Image uploaded successfully: {original_filename} → {unique_filename}"
-    )
-
+        target_path.unlink(missing_ok=True) # Если БД упала — удаляем файл с диска (откат)
+        logger.error(f"File deleted. Error saving metadata for {unique_filename} to DB: {e}")
+        return jsonify({"error": "Error saving metadata file"}), 500
     return jsonify({
-        "message": "Изображение успешно загружено",
-        "filename": unique_filename,
-        "original_filename": original_filename,
-        "url": relative_url,
-        "full_url": full_url,
-        "size": len(file_data),
+        'message':'Изображение успешно загружено',
+        'filename': unique_filename,
+        'original_filename': original_filename,
+        'url': f'/images/{unique_filename}',
+        'full_url': request.host_url.rstrip('/') + f'/images/{unique_filename}',
+        'size': len(file_data)
     }), 201
+    logger.info(f"Image uploaded successfully: {original_filename} → {unique_filename}")
 
+# ──────────────────────────────────────────────
+# Маршруты: удаление
+# ──────────────────────────────────────────────
+@app.get("/delete/<int:id>")
+def delete_image(id: int):
+    """
+    Удаляет изображение из базы данных и с диска.
+
+    Args:
+        id: Уникальный идентификатор записи в таблице ``images``.
+
+    Returns:
+        JSON с результатом операции или JSON с ошибкой.
+    """
+    try:
+        image: Optional[dict] = get_image_by_id(id)
+        if image is None:
+            logger.warning(f"Image with id={id} not found in database")
+            return jsonify({"error": "Изображение не найдено"}), 404
+
+        img_id, filename = image
+        delete_image_by_id(id)
+
+        # Удаляем физический файл
+        file_path: Path = IMAGES_DIR / filename
+        if file_path.exists():
+            try:
+                file_path.unlink()
+                logger.info(f"Physical file deleted: {filename} from disk")
+        return redirect(url_for('image_page')
+
+    except Exception as e:
+        logger.error(f"Error deleting physical file {filename}: {e}"))
+
+        # Удаляем запись из БД
+        delete_image_by_id(image_id)
+        logger.info(f"Image record deleted from DB: id={image_id}, file={filename}")
 
 # ──────────────────────────────────────────────
 # Маршруты: отдача файлов (Nginx fallback)
@@ -342,52 +385,6 @@ def get_image(filename: str):
     except Exception as e:
         logger.error(f"Error serving file {filename}: {e}")
         return jsonify({"error": "Error serving file"}), 500
-
-
-# ──────────────────────────────────────────────
-# Маршруты: удаление
-# ──────────────────────────────────────────────
-@app.post("/delete/<int:image_id>")
-def delete_image(image_id: int):
-    """
-    Удаляет изображение из базы данных и с диска.
-
-    Args:
-        image_id: Уникальный идентификатор записи в таблице ``images``.
-
-    Returns:
-        JSON с результатом операции или JSON с ошибкой.
-    """
-    try:
-        image_record: Optional[dict] = get_image_by_id(image_id)
-        if image_record is None:
-            logger.warning(f"Image with id={image_id} not found in database")
-            return jsonify({"error": "Изображение не найдено"}), 404
-
-        filename: str = image_record["filename"]
-        file_path: Path = IMAGES_DIR / filename
-
-        # Удаляем физический файл
-        if file_path.exists():
-            try:
-                file_path.unlink()
-                logger.info(f"Physical file deleted: {filename}")
-            except OSError as e:
-                logger.error(f"Error deleting physical file {filename}: {e}")
-
-        # Удаляем запись из БД
-        delete_image_by_id(image_id)
-        logger.info(f"Image record deleted from DB: id={image_id}, file={filename}")
-
-        # Если запрос пришёл из браузера — редирект обратно на список
-        if request.headers.get("Accept", "").startswith("text/html"):
-            return redirect(url_for("images_list_page"))
-
-        return jsonify({"message": "Изображение успешно удалено"}), 200
-
-    except Exception as e:
-        logger.error(f"Error deleting image id={image_id}: {e}")
-        return jsonify({"error": "Ошибка при удалении изображения"}), 500
 
 
 # ──────────────────────────────────────────────
@@ -526,19 +523,6 @@ def get_image(filename: str):
         logger.error(f'Error serving file {filename}: {e}')
         return jsonify({'error': 'Error serving file'}), 500
 
-
-@app.errorhandler(RequestEntityTooLarge)
-def handle_file_too_large(e):
-    """Обрабатывает ошибку превышения размера файла."""
-    logger.error('File too large: %s', e)
-    return jsonify({'error': 'Файл слишком большой'}), 413
-
-
-@app.errorhandler(BadRequest)
-def handle_bad_request(e):
-    """Обрабатывает некорректные запросы."""
-    logger.error('Bad request: %s', e)
-    return jsonify({'error': 'Некорректный запрос'}), 400
 
 
 # Создаём таблицы при запуске приложения
