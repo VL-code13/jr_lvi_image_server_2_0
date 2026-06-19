@@ -55,10 +55,6 @@ CORS(app)
 # ──────────────────────────────────────────────
 
 app.config["MAX_CONTENT_LENGTH"] = REQUEST_LIMIT
-# ──────────────────────────────────────────────
-# Создаём директории при запуске приложения
-# ──────────────────────────────────────────────
-ensure_directories_exist()
 
 # ──────────────────────────────────────────────
 # Настройка логирования
@@ -332,7 +328,7 @@ def delete_image(id: int):
 # ──────────────────────────────────────────────
 # Маршруты: отдача файлов (Nginx fallback)
 # ──────────────────────────────────────────────
-@app.get("/images/<filename>")
+@app.get("/images/<path:filename>")
 def get_image(filename: str):
     """
     Отдаёт запрошенное изображение.
@@ -375,6 +371,6 @@ def handle_bad_request(e: BadRequest) -> tuple:
 
 
 if __name__ == "__main__":
-    ensure_directories_exist()
-    create_images()
+    ensure_directories_exist() # Создаём директории при запуске приложения
+    create_images() # Создаем бд если нет
     app.run(host="0.0.0.0", port=3000, debug=True)

@@ -1,10 +1,30 @@
+/* ══════════════════════════════════════════════
+   БАЗОВЫЕ СТИЛИ
+   ══════════════════════════════════════════════ */
+
+/*
+ * Цвет текста по умолчанию — ТЁМНЫЙ (для светлых страниц).
+ * Главная страница переопределяет это через класс .theme-dark.
+ */
 body {
     background-color: #F2F5FF;
     font-family: "Inter", sans-serif;
-    color: rgb(255, 255, 255);
+    color: #1a1a1a;              /* ✅ тёмно-серый, контраст ~16:1 */
 }
 
-/* Header */
+/*
+ * Тёмная тема для главной страницы.
+ * Класс .theme-dark добавляется через JS в index.js
+ */
+body.theme-dark {
+    background-color: #151515;
+    color: rgb(255, 255, 255);   /* ✅ белый на тёмном — ок */
+}
+
+/* ══════════════════════════════════════════════
+   HEADER (главная страница, тёмная тема)
+   ══════════════════════════════════════════════ */
+
 .header {
     display: flex;
     flex-direction: column;
@@ -16,7 +36,6 @@ body {
     text-align: center;
     font-size: 16px;
     width: 700px;
-
 }
 
 .header__text {
@@ -24,7 +43,10 @@ body {
     font-size: 14px;
 }
 
-/* button */
+/* ══════════════════════════════════════════════
+   КНОПКИ HEADER
+   ══════════════════════════════════════════════ */
+
 .header__button {
     display: flex;
     justify-content: center;
@@ -37,14 +59,23 @@ body {
     padding: 12px 16px;
     font-size: 12px;
     background-color: rgb(0, 96, 255);
-    color: rgb(80 29 29);
+    color: rgb(255, 255, 255);
     width: 160px;
     height: 40px;
     border: none;
     border-radius: 7px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-/* hero__img */
+.header__button-btn:hover {
+    background-color: rgb(0, 76, 215);
+}
+
+/* ══════════════════════════════════════════════
+   HERO-ИЗОБРАЖЕНИЯ (главная страница)
+   ══════════════════════════════════════════════ */
+
 .hero {
     display: flex;
     justify-content: center;
@@ -65,57 +96,66 @@ body {
     object-fit: cover;
 }
 
-/* upload */
+/* ══════════════════════════════════════════════
+   UPLOAD — ВВОДНАЯ ЧАСТЬ
+   ══════════════════════════════════════════════ */
+
 .upload__intro {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding-top: 30px;
     text-align: center;
-    color: black;
+    color: #1a1a1a;              /* ✅ тёмный */
 }
 
 .upload__title {
-    font-size: 16px;
+    font-size: 24px;
+    font-weight: 700;
     width: 700px;
-
+    color: #1a1a1a;              /* ✅ тёмный */
 }
 
 .upload__description {
     font-size: 14px;
     width: 400px;
+    color: #555;                 /* ✅ серый, контраст ~7.5:1 */
+    padding-top: 8px;
 }
 
-/* upload-tabs */
+/* ══════════════════════════════════════════════
+   UPLOAD — ВКЛАДКИ
+   ══════════════════════════════════════════════ */
+
 .upload__tabs {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 15px;
     padding-top: 50px;
-
 }
 
 .upload__tab {
     all: unset;
     font-size: 20px;
     font-weight: bold;
-    color: rgb(173, 192, 248); /* Неактивный цвет по умолчанию */
+    color: #6b7db3;              /* ✅ исправлено: было rgb(173,192,248) */
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.upload__tab:hover {
+    color: rgb(0, 96, 255);
 }
 
 .upload__tab--active {
-    color: rgb(0, 96, 255); /* Активный цвет */
+    color: rgb(0, 96, 255);      /* ✅ контраст ~4.6:1 */
 }
 
-.upload__tab:hover {
-    color: rgb(105, 141, 250);
-}
+/* ══════════════════════════════════════════════
+   UPLOAD — ФОРМА ЗАГРУЗКИ
+   ══════════════════════════════════════════════ */
 
-.upload__tab:hover {
-    color: rgb(105, 141, 250);
-}
-
-/* upload-form */
 .upload__form {
     display: flex;
     flex-direction: column;
@@ -129,6 +169,7 @@ body {
     width: 540px;
     height: 233px;
     text-align: center;
+    background-color: rgba(0, 96, 255, 0.03);
 }
 
 .upload__icon {
@@ -140,16 +181,20 @@ body {
 
 .upload__promt {
     padding-top: 24px;
-    color: rgb(11, 11, 11);
+    color: #1a1a1a;              /* ✅ тёмный */
+    font-size: 16px;
 }
 
 .upload__info {
     padding-top: 12px;
     font-size: 14px;
-    color: rgb(173, 192, 248);
+    color: #5a6a9a;              /* ✅ исправлено: было rgb(173,192,248) */
 }
 
-/* upload-button */
+/* ══════════════════════════════════════════════
+   UPLOAD — КНОПКА ВЫБОРА ФАЙЛА
+   ══════════════════════════════════════════════ */
+
 .upload__button {
     padding-top: 30px;
     padding-bottom: 50px;
@@ -159,16 +204,25 @@ body {
     display: inline-block;
     text-align: center;
     cursor: pointer;
-    color: rgb(210 169 169);
+    color: rgb(255, 255, 255);
     width: 540px;
     height: 40px;
     border-radius: 7px;
     background-color: rgb(0, 96, 255);
     padding-top: 7px;
     border: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
 }
 
-/* upload-current */
+.upload__button-btn:hover {
+    background-color: rgb(0, 76, 215);
+}
+
+/* ══════════════════════════════════════════════
+   UPLOAD — ТЕКУЩАЯ ЗАГРУЗКА (URL + COPY)
+   ══════════════════════════════════════════════ */
+
 .upload__container {
     display: flex;
     flex-direction: column;
@@ -183,13 +237,13 @@ body {
 }
 
 .upload__title-current {
-    color: black;
+    color: #1a1a1a;              /* ✅ тёмный */
     padding-bottom: 10px;
     font-size: 16px;
+    font-weight: 600;
     text-align: left;
 }
 
-/* input + button */
 .upload__label {
     display: flex;
     align-items: center;
@@ -209,89 +263,99 @@ body {
     outline: none;
     font-size: 14px;
     background-color: transparent;
-    color: black;
-
+    color: #1a1a1a;              /* ✅ тёмный */
 }
 
 .upload__copy {
-    width: 60px;
-    height: 30px;
-    border-radius: 12px;
+    width: 70px;
+    height: 34px;
+    border-radius: 8px;
     border: none;
     background-color: rgb(0, 96, 255);
     color: white;
     font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
+.upload__copy:hover {
+    background-color: rgb(0, 76, 215);
+}
 
-/* Container for the entire table */
+/* ══════════════════════════════════════════════
+   СПИСОК ФАЙЛОВ (IMAGES LIST)
+   ══════════════════════════════════════════════ */
+
 .file-list-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 292px;
+    max-width: 900px;
+    margin: 30px auto 0;
+    padding: 20px 24px;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
-/* Common style for a row (both header and list item) */
 .file-list-header,
 .file-list-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #eef0f5;
 }
 
-/* Remove border from the last item */
 .file-list-item:last-child {
     border-bottom: none;
 }
 
-/* List header */
+/* Заголовок таблицы */
 .file-list-header {
-    color: #8a96b1;
-    font-size: 14px;
-    font-weight: 500;
+    color: #5a6577;              /* ✅ исправлено: было #8a96b1 */
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* Styles for columns */
+/* Колонки */
 .file-col {
     display: flex;
     align-items: center;
+    font-size: 14px;
+    color: #333;                 /* ✅ тёмный текст для данных */
 }
 
 .file-col-name {
-    flex-basis: 35%;
+    flex-basis: 30%;
 }
 
 .file-col-url {
-    flex-basis: 50%;
-    color: #555;
-    font-size: 14px;
+    flex-basis: 25%;
+    color: #555;                 /* ✅ серый, контраст ~7.5:1 */
 }
 
-.file-col-delete {
-    flex-basis: 10%;
+.file-col-delete,
+.file-col-actions {
+    flex-basis: 15%;
     justify-content: center;
 }
 
-/* File icon */
+/* Иконка файла */
 .file-icon {
-    color: #0060ff;
-    margin-right: 15px;
-    font-size: 20px;
+    color: rgb(0, 96, 255);
+    margin-right: 10px;
+    font-size: 18px;
 }
 
 .delete-img {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
 }
 
-/* File name */
+/* Имя файла */
 .file-name {
-    color: #333;
+    color: #1a1a1a;              /* ✅ тёмный */
     font-weight: 500;
     max-width: 200px;
     white-space: nowrap;
@@ -299,25 +363,102 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Delete button */
-.delete-btn {
-    background: transparent;
-    /* REMOVE THE BACKGROUND, MAKE IT TRANSPARENT */
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
+/* ══════════════════════════════════════════════
+   КНОПКИ ДЕЙСТВИЙ (ОТКРЫТЬ + УДАЛИТЬ)
+   ══════════════════════════════════════════════ */
+
+.action-buttons {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    transition: opacity 0.2s ease;
-    /* Add a smooth transition for hover effect */
+    gap: 12px;
 }
 
-/* Hover effect */
-.delete-btn:hover {
-    background: transparent;
-    /* REMOVE BACKGROUND ON HOVER */
-    opacity: 0.7;
-    /* Make the icon semi-transparent for user feedback */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    cursor: pointer;
+}
+
+/* Кнопка "Открыть" */
+.action-btn--view {
+    background-color: rgba(0, 96, 255, 0.1);
+}
+
+.action-btn--view:hover {
+    background-color: rgba(0, 96, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.action-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Кнопка "Удалить" */
+.action-btn--delete {
+    background-color: rgba(255, 59, 48, 0.1);
+}
+
+.action-btn--delete:hover {
+    background-color: rgba(255, 59, 48, 0.25);
+    transform: scale(1.1);
+}
+
+.action-btn--delete .delete-img {
+    width: 20px;
+    height: 20px;
+}
+
+/* ══════════════════════════════════════════════
+   ПАГИНАЦИЯ
+   ══════════════════════════════════════════════ */
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px 0 48px;
+}
+
+.pagination-link {
+    padding: 8px 16px;
+    color: rgb(0, 96, 255);      /* ✅ синий, контраст ~4.6:1 */
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.pagination-link:hover {
+    background-color: rgba(0, 96, 255, 0.1);
+}
+
+.pagination-link--disabled {
+    color: #999;                 /* ✅ исправлено: было #ccc */
+    pointer-events: none;
+    cursor: default;
+}
+
+.pagination-info {
+    color: #555;                 /* ✅ серый */
+    font-size: 14px;
+}
+
+/* ══════════════════════════════════════════════
+   ПУСТОЙ СПИСОК
+   ══════════════════════════════════════════════ */
+
+.empty-list-message {
+    text-align: center;
+    margin-top: 50px;
+    color: #555;                 /* ✅ исправлено: было #888 */
+    font-size: 16px;
 }

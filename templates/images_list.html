@@ -11,8 +11,6 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
-
-
 </head>
 
 <body>
@@ -33,7 +31,7 @@
             <div class="file-col">Размер (КБ)</div>
             <div class="file-col">Дата загрузки</div>
             <div class="file-col">Тип</div>
-            <div class="file-col file-col-delete">Действие</div>
+            <div class="file-col file-col-actions">Действия</div>
         </div>
 
         {% for img in images %}
@@ -46,37 +44,53 @@
             <div class="file-col">{{ img.size_kb }}</div>
             <div class="file-col">{{ img.upload_time }}</div>
             <div class="file-col">{{ img.file_type }}</div>
-            <div class="file-col file-col-delete">
-                <a href="{{ url_for('delete_image', id=img.id) }}"
-                   onclick="return confirm('Удалить изображение?')">
-                    <img class="delete-img"
-                         src="{{ url_for('static', filename='img/icon/delete.png') }}"
-                         alt="delete">
-                </a>
+
+            <!-- Колонка действий: Открыть + Удалить -->
+            <div class="file-col file-col-actions">
+                <div class="action-buttons">
+                    <!-- Кнопка "Открыть" -->
+                    <a href="{{ url_for('get_image', filename=img.filename) }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="action-btn action-btn--view"
+                       title="Открыть изображение в новой вкладке">
+                        <span class="action-icon">👁️</span>
+                    </a>
+
+                    <!-- Кнопка "Удалить" -->
+                    <a href="{{ url_for('delete_image', id=img.id) }}"
+                       onclick="return confirm('Удалить изображение «{{ img.original_filename }}»?')"
+                       class="action-btn action-btn--delete"
+                       title="Удалить изображение">
+                        <img class="delete-img"
+                             src="{{ url_for('static', filename='img/icon/delete.png') }}"
+                             alt="delete">
+                    </a>
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
 
     <!-- Пагинация -->
-    <div style="text-align: center; padding: 20px;">
+    <div class="pagination">
         {% if has_prev %}
-        <a href="{{ url_for('images_page', page=page - 1) }}">← Предыдущая</a>
+        <a href="{{ url_for('images_page', page=page - 1) }}" class="pagination-link">← Предыдущая</a>
         {% else %}
-        <span style="color: #ccc;">← Предыдущая</span>
+        <span class="pagination-link pagination-link--disabled">← Предыдущая</span>
         {% endif %}
 
-        Страница {{ page }} из {{ total_pages }}
+        <span class="pagination-info">Страница {{ page }} из {{ total_pages }}</span>
 
         {% if has_next %}
-        <a href="{{ url_for('images_page', page=page + 1) }}">Следующая →</a>
+        <a href="{{ url_for('images_page', page=page + 1) }}" class="pagination-link">Следующая →</a>
         {% else %}
-        <span style="color: #ccc;">Следующая →</span>
+        <span class="pagination-link pagination-link--disabled">Следующая →</span>
         {% endif %}
     </div>
 
     {% else %}
-    <p style="text-align: center; margin-top: 50px;">Нет загруженных изображений.</p>
+    <p class="empty-list-message">Нет загруженных изображений.</p>
     {% endif %}
 </body>
 
