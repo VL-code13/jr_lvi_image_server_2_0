@@ -56,3 +56,4 @@ def create_images() -> str:
         error_msg = f"Не удалось подключиться к БД: {e}"
         logger.error(error_msg)
         return error_msg
+

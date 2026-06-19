@@ -50,11 +50,14 @@ from settings import (
 
 app: Flask = Flask(__name__)
 CORS(app)
-
+# ──────────────────────────────────────────────
 # Применяем настройки
-app.config["MAX_CONTENT_LENGTH"] = REQUEST_LIMIT
+# ──────────────────────────────────────────────
 
+app.config["MAX_CONTENT_LENGTH"] = REQUEST_LIMIT
+# ──────────────────────────────────────────────
 # Создаём директории при запуске приложения
+# ──────────────────────────────────────────────
 ensure_directories_exist()
 
 # ──────────────────────────────────────────────
@@ -126,10 +129,8 @@ def images_page() -> str:
 
     try:
         total_images: int = get_total_images_count()
-        total_pages: int = (
-            math.ceil(total_images / per_page) if total_images > 0 else 1
-        )
-        images = get_images_list(per_page, offset)
+        total_pages: int = (math.ceil(total_images / per_page) if total_images > 0 else 1)
+        images = get_images_list(per_page=per_page, offset=offset)
 
         formatted_images: list[dict] = []
         for img in images:
