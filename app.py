@@ -126,7 +126,7 @@ def images_page() -> str:
     try:
         total_images: int = get_total_images_count()
         total_pages: int = (math.ceil(total_images / per_page) if total_images > 0 else 1)
-        images = get_images_list(per_page=per_page, offset=offset)
+        images = get_images_list(per_page, offset)
 
         formatted_images: list[dict] = []
         for img in images:

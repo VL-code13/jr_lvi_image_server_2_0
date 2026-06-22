@@ -30,7 +30,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5436:5432"
+      - "5435:5432"
 
   nginx:
     image: nginx:1.27-alpine
